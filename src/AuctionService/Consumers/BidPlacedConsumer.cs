@@ -15,7 +15,7 @@ namespace AuctionService.Consumers
         public async Task Consume(ConsumeContext<BidPlaced> context)
         {
             Console.WriteLine("->> Consuming Bid Place");
-            var auction = await _context.Auctions.FindAsync(context.Message.AuctionId);
+            var auction = await _context.Auctions.FindAsync(Guid.Parse(context.Message.AuctionId));
             if(auction.CurrentHighBid == null 
                 || context.Message.BidStatus.Contains("Accepted") && context.Message.Amount > auction.CurrentHighBid)
             {
