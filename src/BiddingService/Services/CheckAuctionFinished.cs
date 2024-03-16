@@ -1,6 +1,4 @@
-﻿
-
-using BiddingService.Models;
+﻿using BiddingService.Models;
 using Contracts;
 using MassTransit;
 using MongoDB.Entities;
@@ -11,12 +9,12 @@ namespace BiddingService.Services
     {
         private readonly ILogger<CheckAuctionFinished> _logger;
         private readonly IServiceProvider _service;
+
         public CheckAuctionFinished(ILogger<CheckAuctionFinished> logger, IServiceProvider service)
         {
             _logger = logger;
 
-            _service = service;
-
+    _service = service;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,7 +36,8 @@ namespace BiddingService.Services
                 .Match(x => !x.Finished)
                 .ExecuteAsync(stoppingToken);
 
-            if (finishedAuctions.Count == 0) return;
+            if (finishedAuctions.Count == 0)
+                return;
 
             _logger.LogInformation($"=>>Found {finishedAuctions.Count} auctions finished");
             using var scope = _service.CreateScope();
@@ -49,17 +48,22 @@ namespace BiddingService.Services
                 auction.Finished = true;
                 await auction.SaveAsync(null, stoppingToken);
 
-                var winningBid = await DB.Find<Bid>().Match(x => x.AuctionId == auction.ID)
-                    .Match(y => y.BidStatus == BidStatus.Accepted).Sort(z => z.Descending(s => s.Amount))
+                var winningBid = await DB.Find<Bid>()
+                    .Match(x => x.AuctionId == auction.ID)
+                    .Match(y => y.BidStatus == BidStatus.Accepted)
+                    .Sort(z => z.Descending(s => s.Amount))
                     .ExecuteFirstAsync(stoppingToken);
-                await endpoint.Publish(new AuctionFinished
-                {
-                    ItemSold = winningBid != null,
-                    AuctionId = auction.ID,
-                    Winner = winningBid?.Bidder,
-                    Amount = winningBid?.Amount,
-                    Seller = auction.Seller
-                }, stoppingToken);
+                await endpoint.Publish(
+                    new AuctionFinished
+                    {
+                        ItemSold = winningBid != null,
+                        AuctionId = auction.ID,
+                        Winner = winningBid?.Bidder,
+                        Amount = winningBid?.Amount,
+                        Seller = auction.Seller
+                    },
+                    stoppingToken
+                );
             }
         }
     }

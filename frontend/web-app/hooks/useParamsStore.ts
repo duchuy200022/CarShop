@@ -23,7 +23,7 @@ const initialState: State = {
   searchTerm: "",
   searchValue: "",
   orderBy: "make",
-  filterBy: "live"
+  filterBy: "live",
 };
 
 export const useParamsStore = create<State & Actions>()((set) => ({
@@ -41,5 +41,5 @@ export const useParamsStore = create<State & Actions>()((set) => ({
 
   setSearchValue: (value: string) => {
     set({ searchValue: value });
-  }
+  },
 }));
